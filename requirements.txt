@@ -2,3 +2,5 @@ BeautifulSoup==3.2.1
 Django==1.11.13
 django-webpack-loader==0.6.0
 pytz==2018.4
+gunicorn==19.6.0
+psycopg2==2.4.5
