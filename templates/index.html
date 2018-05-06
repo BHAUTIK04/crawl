@@ -112,7 +112,11 @@
                      urls = '<ul><li>'+seedurl+'</li>';
                      images = '<ul>';
                      for(var i=0; i<d["urls"].length;i++){
-                       urls+='<li>'+seedurl+'/'+d["urls"][i]+'</li>'
+                       if(d["urls"][i].startsWith("http")){
+                         urls+='<li>'+d["urls"][i]+'</li>'
+                       }else{
+                         urls+='<li>'+seedurl+'/'+d["urls"][i]+'</li>'
+                       }
                      }
                      for(var i=0; i<d["images"].length;i++){
                        if(d["images"][i].startsWith("http")){
