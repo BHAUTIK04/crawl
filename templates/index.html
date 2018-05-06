@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Crawler</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid blue;
+      border-right: 16px solid green;
+      border-bottom: 16px solid red;
+      border-left: 16px solid pink;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    ul {
+      columns: 2;
+      color: white;
+      list-style-type: decimal;
+    }
+    .imagescrawler {
+      width: 500px;
+      height: 170px;
+    }
+    .imagescrawler img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+  </style>
+</head>
+<body style="background-color:#3E43A9;">
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Crawler</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" style="background-color=#3E43A9;">
+  <div class="input-group input-group-lg">
+    <span class="input-group-addon">https://www.google.com</span>
+    <input type="text" class="form-control" id="seedurl" placeholder="Enter Url Here...">
+  </div><br>
+  <div class="input-group input-group-lg">
+    <span class="input-group-addon">0</span>
+    <input type="text" class="form-control" id="depth" placeholder="Enter Depth Here...">
+  </div><br>
+  <div class="input-group" style="align:center;">
+    <button type="button" class="btn btn-success" id="submit" data-toggle="modal" data-target="#myModal">Submit</button>
+  </div>
+  <div id="errordiv">
+
+  </div>
+  <div class="hidden" id="data">
+    <div id = "div1">
+      <h3 style="text-align:center;"><b>Available Pages</b></h3><hr>
+      <div id="urls"></div>
+    </div>
+    <div id = "div2">
+      <h3 style="text-align:center;"><b>Available Images</b></h3><hr>
+      <div id="images"></div>
+    </div>
+  </div>
+  <div id="myModal" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-body">
+          <div class="loader" id="loader" style="visibility:hidden;margin-top:40%;margin-left:40%;"></div>
+        </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function(){
+      $("#submit").click(function(){
+          $("#submit").addClass("disabled");
+          var reqdata = {}
+          reqdata["seedurl"] = document.getElementById("seedurl").value;
+          reqdata["depth"] = document.getElementById("depth").value;
+          $('#loader').css('visibility', 'visible');
+          $.post("/crawlurl",
+                 JSON.stringify(reqdata),
+                 function(data, status){
+                   console.log(data);
+                   console.log(status);
+                   if(status == "success"){
+                     $('#loader').css('visibility', 'hidden');
+                     $("#submit").removeClass("disabled");
+                   }
+                   d = JSON.parse(data)
+                   $('#myModal').modal('hide');
+                   if(d["status_msg"] == "success"){
+                     seedurl = d["seedurl"]
+                     urls = '<ul><li>'+seedurl+'</li>';
+                     images = '<ul>';
+                     for(var i=0; i<d["urls"].length;i++){
+                       urls+='<li>'+seedurl+'/'+d["urls"][i]+'</li>'
+                     }
+                     for(var i=0; i<d["images"].length;i++){
+                       if(d["images"][i].startsWith("http")){
+                          images+='<li><div class="imagescrawler"><img class="img-responsive" src='+d["images"][i]+' alt='+d["images"][i]+'></div></li>'
+                       }else{
+                          images+='<li><div class="imagescrawler"><img class="img-responsive" src='+seedurl+'/'+d["images"][i]+' alt='+seedurl+'/'+d["images"][i]+'></div></li>'
+                       }
+                     }
+                      // <img class="img-responsive" src="img_chania.jpg" alt="Chania">
+                     urls+='</ul>'
+                     images+='</ul>'
+                     $("#errordiv").addClass("hidden");
+                     $("#data").removeClass("hidden");
+                     $("#urls").html(urls);
+                     // <div class="imagescrawler"><img class="img-responsive" src="imagePath" /></div>
+                     $("#images").html(images);
+                     $("#submit").removeClass("disabled");
+                   }
+                   else if(d["status_msg"] == "error"){
+                     console.log(d);
+                     $("#data").addClass("hidden");
+                     $("#errordiv").removeClass("hidden")
+                     $("#errordiv").html('<h3 style="color:red;"><b>'+d["response_msg"]+'</b></h3>')
+                   }
+
+
+                 });
+      });
+  });
+</script>
+</body>
+</html>
